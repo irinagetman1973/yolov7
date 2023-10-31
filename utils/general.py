@@ -120,11 +120,22 @@ def check_requirements(requirements='requirements.txt', exclude=()):
         print(emojis(s))  # emoji-safe
 
 
+# def check_img_size(img_size, s=32):
+#     # Verify img_size is a multiple of stride s
+#     print("Inside check_img_size:", type(img_size), img_size)
+#     new_size = make_divisible(img_size, int(s))  # ceil gs-multiple
+#     if new_size != img_size:
+#         print('WARNING: --img-size %g must be multiple of max stride %g, updating to %g' % (img_size, s, new_size))
+#     return new_size
 def check_img_size(img_size, s=32):
-    # Verify img_size is a multiple of stride s
-    new_size = make_divisible(img_size, int(s))  # ceil gs-multiple
+    if isinstance(img_size, tuple):
+        new_width = make_divisible(img_size[0], int(s))
+        new_height = make_divisible(img_size[1], int(s))
+        new_size = (new_width, new_height)
+    else:
+        new_size = make_divisible(img_size, int(s))
     if new_size != img_size:
-        print('WARNING: --img-size %g must be multiple of max stride %g, updating to %g' % (img_size, s, new_size))
+        print('WARNING: --img-size %s must be multiple of max stride %g, updating to %s' % (img_size, s, new_size))
     return new_size
 
 
@@ -175,6 +186,7 @@ def check_dataset(dict):
 
 def make_divisible(x, divisor):
     # Returns x evenly divisible by divisor
+    
     return math.ceil(x / divisor) * divisor
 
 
