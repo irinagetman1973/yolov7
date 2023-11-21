@@ -12,7 +12,7 @@ from utils.general import check_img_size
 from io import BytesIO
 import numpy as np
 import cv2
-
+import random
 # from config import DETECTION_MODEL_LIST_V7, DETECTION_MODEL_DIR_V7, YOLOv7, YOLOv7_Champion, YOLOv7_e6, YOLOv7_w6, YOLOv7x
 from pathlib import Path
 
@@ -20,7 +20,7 @@ from pathlib import Path
 
 class YOLOv7Wrapper(SingleInference_YOLOV7):
 
-      DETECTION_MODEL_DIR_V7 = Path('C:/Users/irina/capstone/weights') / 'detection'
+      DETECTION_MODEL_DIR_V7 = Path(__file__).parent.parent/ 'weights' / 'detection'
       MODELS = {
             "yolov7.pt": DETECTION_MODEL_DIR_V7 / "yolov7.pt",
             "v7_champion.pt": DETECTION_MODEL_DIR_V7 / "v7_champion.pt",
@@ -45,11 +45,14 @@ class YOLOv7Wrapper(SingleInference_YOLOV7):
             # Initializing the super class with the required parameters
             super().__init__(self.img_size, self.model_path, path_img_i='None', device_i='cpu', conf_thres=0.25, iou_thres=0.5)
             
+            
             # Load the YOLOv7 model
             self.load_model()
 
 
       def get_model_path(self, model_name):
+            print("Available models:", self.MODELS)
+            print("Requested model name:", model_name)
             return self.MODELS.get(model_name) or self.raise_error(model_name)
 
       @staticmethod
@@ -66,50 +69,7 @@ class YOLOv7Wrapper(SingleInference_YOLOV7):
             self.read_img(image_path)
       
       
-      @staticmethod
-      def non_max_suppression(boxes, scores, threshold=0.5):
-            if not boxes:
-                  return []
-
-            boxes = np.array(boxes)
-
-            # pick the coordinates of the bounding boxes
-            x1 = boxes[:,0]
-            y1 = boxes[:,1]
-            x2 = boxes[:,2]
-            y2 = boxes[:,3]
-
-            # compute the area of the bounding boxes
-            areas = (x2 - x1 + 1) * (y2 - y1 + 1)
-            
-
-            scores = np.array(scores)
-
-            # sort the bounding boxes by their scores
-            order = scores.argsort()[::-1]
-
-            keep = []
-            while order.size > 0:
-                  i = order[0]
-                  keep.append(i)
-                  
-                  # find the coordinates for the intersection of the current box and the rest
-                  xx1 = np.maximum(x1[i], x1[order[1:]])
-                  yy1 = np.maximum(y1[i], y1[order[1:]])
-                  xx2 = np.minimum(x2[i], x2[order[1:]])
-                  yy2 = np.minimum(y2[i], y2[order[1:]])
-
-                  w = np.maximum(0.0, xx2 - xx1 + 1)
-                  h = np.maximum(0.0, yy2 - yy1 + 1)
-
-                  # compute the ratio of overlap
-                  overlap = (w * h) / (areas[order[1:]] + areas[i] - w * h)
-
-                  # delete all indexes from the index list that have overlap > threshold
-                  inds = np.where(overlap <= threshold)[0]
-                  order = order[inds + 1]
-
-            return keep
+      
 
 
       def detect_and_draw_boxes_from_np(self, img_np: np.ndarray,confidence_threshold: float = 0.5):
@@ -140,9 +100,27 @@ class YOLOv7Wrapper(SingleInference_YOLOV7):
                         continue  # Skip this box as it is below the confidence threshold
                   
                   x0, y0, x1, y1 = box
-                  cv2.rectangle(self.image, (int(x0), int(y0)), (int(x1), int(y1)), (0, 255, 0), 2)  # Green color box
-                  cv2.putText(self.image, str(confidence), (int(x0), int(y0) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-            
+                  color = self.colors[self.names.index(name)]
+                 
+                  # Draw a thicker rectangle for better visibility
+                  cv2.rectangle(image, (x0, y0), (x1, y1), color, thickness=4)
+
+                  # Prepare the text with class name and confidence
+                  text = f"{name} {confidence:.2f}"
+                  text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.9, thickness=2)[0]
+                  text_x = x0
+                  text_y = y0 - 10  # Adjust position to be above the rectangle
+
+                  # Draw a filled rectangle for the text background
+                  cv2.rectangle(image, (x0, y0 - text_size[1] - 10), (x0 + text_size[0], y0), color, thickness=cv2.FILLED)
+
+                  # Put the text on top of the filled rectangle
+                  cv2.putText(image, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), thickness=2)
+
+                  # cv2.rectangle(self.image, (int(x0), int(y0)), (int(x1), int(y1)),(0, 255, 0), thickness=3)  # Green color box
+                  
+                  # cv2.putText(self.image, label, (int(x0), int(y0) - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+
             # Convert the image with bounding boxes to a format suitable for returning
             self.img_screen = Image.fromarray(self.image).convert('RGB')
             

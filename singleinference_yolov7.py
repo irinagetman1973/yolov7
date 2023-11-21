@@ -76,7 +76,7 @@ class SingleInference_YOLOV7:
 
         '''
         # Load model
-        print("Inside load_model:", type(self.img_size), self.img_size)
+        # print("Inside load_model:", type(self.img_size), self.img_size)
         self.model = self.attempt_load(self.path_yolov7_weights, map_location=self.device)  # load FP32 model
         self.stride = int(self.model.stride.max())  # model stride
         self.img_size = self.check_img_size(self.img_size, s=self.stride)  # check img_size
@@ -178,8 +178,34 @@ class SingleInference_YOLOV7:
                         self.predicted_bboxes_PascalVOC.append([name,x0,y0,x1,y1,score]) #PascalVOC annotations
                         color = self.colors[self.names.index(name)]
                         name += ' '+str(score)
+                        
                         cv2.rectangle(image,self.box[:2],self.box[2:],color,2)
+                        
                         cv2.putText(image,name,(self.box[0], self.box[1] - 2),cv2.FONT_HERSHEY_SIMPLEX,0.5,[225, 255, 255],thickness=2)
+
+                        #-------------Try to change UI------------------
+
+                        # # Draw the rectangle
+                        # cv2.rectangle(image, (int(self.box[0]), int(self.box[1])), (int(self.box[2]), int(self.box[3])), self.color, 2)
+
+                        # # Calculate the width of the text for background
+                        # text = f"{self.name}"
+                        # (text_width, text_height), baseline = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)
+
+                        # # Set the text background's coordinates based on the text size
+                        # text_background_coords = ((int(self.box[0]), int(self.box[1] - text_height - baseline - 2)),
+                        #                         (int(self.box[0]) + text_width, int(self.box[1])))
+                        
+                        # # Draw a filled rectangle for the text's background
+                        # cv2.rectangle(image, text_background_coords[0], text_background_coords[1], self.color, thickness=cv2.FILLED)
+
+                        # # Set the text's coordinates such that it's placed inside the background rectangle
+                        # text_coords = (int(self.box[0]), int(self.box[1] - baseline - 2))
+
+                        # # Draw the text on top of the background rectangle
+                        # cv2.putText(image, text, text_coords, cv2.FONT_HERSHEY_SIMPLEX, 0.5, [225, 255, 255], thickness=2)
+
+                        #-----------End-------------------------------------------
                     self.image=image
                 else:
                     self.image=self.im0.copy()
