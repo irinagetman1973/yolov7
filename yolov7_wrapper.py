@@ -26,7 +26,8 @@ class YOLOv7Wrapper(SingleInference_YOLOV7):
             "v7_champion.pt": DETECTION_MODEL_DIR_V7 / "v7_champion.pt",
             "yolov7-e6.pt": DETECTION_MODEL_DIR_V7 / "yolov7-e6.pt",
             "yolov7-w6.pt": DETECTION_MODEL_DIR_V7 / "yolov7-w6.pt",
-            "yolov7x.pt": DETECTION_MODEL_DIR_V7 / "yolov7x.pt"
+            "yolov7x.pt": DETECTION_MODEL_DIR_V7 / "yolov7x.pt",
+            "Santa_v7.pt": DETECTION_MODEL_DIR_V7 / "Santa_v7.pt"
       }
 
       def __init__(self, model_name, img_size=(640, 640)):
